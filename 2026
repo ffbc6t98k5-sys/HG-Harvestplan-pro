@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ernteplaner">
+<title>Ernteplaner HG farming pro</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "Segoe UI", sans-serif; background: #f0ece2; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+.tabs { display: flex; background: #fff; border-bottom: 2px solid #d4cfc3; position: sticky; top: 0; z-index: 100; }
+.tab { flex: 1; padding: 12px 4px; border: none; background: none; cursor: pointer; font-size: 11px; font-weight: 700; color: #999; border-bottom: 3px solid transparent; }
+.tab.active { color: #3d6e28; border-bottom: 3px solid #3d6e28; }
+.page { padding: 16px 14px 100px; display: none; }
+.page.active { display: block; }
+.card { background: #fff; border-radius: 16px; padding: 18px 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 14px; }
+.card h2 { font-size: 21px; font-weight: 800; color: #1a2e0f; margin-bottom: 4px; }
+.card p.sub { color: #888; font-size: 13px; margin-bottom: 18px; }
+label { display: block; font-weight: 700; font-size: 13px; color: #1a2e0f; margin-bottom: 6px; margin-top: 16px; }
+input[type=text], textarea { width: 100%; padding: 12px 14px; border: 1.5px solid #ddd8cc; border-radius: 10px; font-size: 15px; background: #faf8f3; color: #1a2e0f; font-family: inherit; outline: none; }
+input[type=text]:focus, textarea:focus { border-color: #3d6e28; }
+textarea { resize: none; }
+.zeitraum-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: #f7f4ec; border-radius: 10px; padding: 10px 12px; }
+.zeitraum-row input[type=date] { flex: 1; padding: 8px 6px; border: 1.5px solid #ddd8cc; border-radius: 8px; font-size: 13px; background: #fff; color: #1a2e0f; outline: none; min-width: 0; }
+.zeitraum-row span { font-size: 12px; color: #888; flex-shrink: 0; }
+.btn-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 18px; padding: 2px 4px; flex-shrink: 0; }
+.btn-add { background: none; border: 2px dashed #bbb; border-radius: 10px; width: 100%; padding: 10px; color: #888; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+.btn-add:active { border-color: #3d6e28; color: #3d6e28; }
+.vehicle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.vehicle-btn { border: 3px solid transparent; border-radius: 12px; padding: 0; background: none; cursor: pointer; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+.vehicle-btn.selected { border-color: #1a2e0f; box-shadow: 0 0 0 2px #1a2e0f; }
+.vehicle-img { position: relative; height: 88px; overflow: hidden; }
+.vehicle-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vehicle-check { position: absolute; top: 6px; right: 6px; background: #1a2e0f; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; }
+.vehicle-info { background: #f7f4ec; padding: 6px 8px 8px; text-align: center; }
+.vehicle-info strong { display: block; font-size: 12px; color: #1a2e0f; }
+.vehicle-info small { font-size: 11px; color: #777; }
+.btn-submit { margin-top: 18px; width: 100%; padding: 15px; background: #3d6e28; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
+.btn-submit:disabled { background: #aaa; }
+.entry-card { background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+.entry-row { display: flex; align-items: center; gap: 10px; }
+.entry-thumb { width: 52px; height: 38px; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.entry-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.entry-info { flex: 1; min-width: 0; }
+.entry-name { font-weight: 700; font-size: 14px; color: #1a2e0f; }
+.entry-vehicle { font-size: 12px; color: #666; }
+.entry-zeitraum { font-size: 11px; color: #3d6e28; margin-top: 2px; font-weight: 600; }
+.entry-note { font-size: 12px; color: #999; margin-top: 2px; font-style: italic; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.stat-box { background: #fff; border-radius: 14px; padding: 14px 8px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+.stat-num { font-weight: 800; font-size: 26px; color: #1a2e0f; line-height: 1.1; }
+.stat-label { font-size: 10px; color: #999; margin-top: 2px; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bar-thumb { width: 40px; height: 30px; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+.bar-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.bar-info { flex: 1; min-width: 0; }
+.bar-labels { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 12px; }
+.bar-track { height: 6px; background: #eee; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; background: #3d6e28; border-radius: 4px; }
+.settings-vehicle { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0ece2; }
+.settings-thumb { width: 52px; height: 38px; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.settings-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #5a9e3a; flex-shrink: 0; }
+.section-title { font-size: 13px; font-weight: 700; color: #3d6e28; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a2e0f; color: #fff; padding: 12px 22px; border-radius: 30px; font-size: 14px; font-weight: 600; white-space: nowrap; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.25); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.empty { text-align: center; padding: 50px 20px; }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-text { font-weight: 600; color: #999; font-size: 15px; }
+.empty-sub { font-size: 13px; color: #bbb; margin-top: 4px; }
+.loading { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('eintragen',this)">Eintragen</button>
+  <button class="tab" onclick="showTab('planung',this)">Planung</button>
+  <button class="tab" onclick="showTab('uebersicht',this)">Übersicht</button>
+  <button class="tab" onclick="showTab('einrichten',this)">Einrichten</button>
+</div>
+
+<div id="page-eintragen" class="page active">
+  <div class="card">
+    <h2>Hallo! Hier eintragen 👋</h2>
+    <p class="sub">Name, Verfügbarkeit und Fahrzeug – fertig!</p>
+
+    <label>Ihr Name</label>
+    <input type="text" id="input-name" placeholder="z.B. Klaus Müller">
+
+    <label>Wann haben Sie Zeit? (Zeiträume)</label>
+    <div id="zeitraum-list"></div>
+    <button class="btn-add" onclick="addZeitraum()">+ Zeitraum hinzufügen</button>
+
+    <label>Fahrzeug wählen</label>
+    <div class="vehicle-grid">
+    <button class="vehicle-btn" id="vbtn-claas8700" onclick="selectVehicle('claas8700')">
+      <div class="vehicle-img">
